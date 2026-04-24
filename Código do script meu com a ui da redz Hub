@@ -1,0 +1,136 @@
+-- Carregando a Library oficial do redz v5
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/REDZHUB/RedzLibV5/main/Source.lua"))()
+
+-- Criando a Janela Principal com os créditos para Angelo
+local Window = redzlib:MakeWindow({
+  Name = "Angelo Hub | Brookhaven ADM 🚀",
+  SubTitle = "by Angelo",
+  SaveConfig = true,
+  ConfigFolder = "AngeloHubConfig"
+})
+
+-- Abas Laterais
+local MainTab = Window:MakeTab({"Principal", "home"})
+local ExtraTab = Window:MakeTab({"Extras", "plus"})
+
+-- Seção Principal
+MainTab:AddSection({"Configurações do Avatar"})
+
+-- 1. SPEED COM DIGITAÇÃO
+MainTab:AddTextBox({
+  Name = "Velocidade (WalkSpeed)",
+  Default = "16",
+  PlaceholderText = "Digite a velocidade...",
+  Callback = function(Text)
+    local s = tonumber(Text)
+    if s then 
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s 
+    end
+  end
+})
+
+-- 2. SIZE COM DIGITAÇÃO
+MainTab:AddTextBox({
+  Name = "Tamanho do Personagem (Size)",
+  Default = "1",
+  PlaceholderText = "Ex: 2 para dobrar",
+  Callback = function(Text)
+    local s = tonumber(Text)
+    if s then
+      local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+      if hum:FindFirstChild("BodyHeightScale") then
+        hum.BodyHeightScale.Value = s
+        hum.BodyWidthScale.Value = s
+        hum.BodyDepthScale.Value = s
+        hum.HeadScale.Value = s
+      end
+    end
+  end
+})
+
+-- 3. FLY (VOAR)
+local flying = false
+MainTab:AddToggle({
+  Name = "Modo Voo (Fly)",
+  Default = false,
+  Callback = function(Value)
+    flying = Value
+    local plr = game.Players.LocalPlayer
+    local mouse = plr:GetMouse()
+    local char = plr.Character
+    local root = char:WaitForChild("HumanoidRootPart")
+    
+    if flying then
+      local bv = Instance.new("BodyVelocity", root)
+      bv.Name = "AngeloFly"
+      bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+      local bg = Instance.new("BodyGyro", root)
+      bg.Name = "AngeloGyro"
+      bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+      
+      task.spawn(function()
+        while flying do
+          task.wait()
+          bv.velocity = mouse.Hit.lookVector * 50
+          bg.cframe = CFrame.new(root.Position, root.Position + mouse.Hit.lookVector)
+        end
+        bv:Destroy()
+        bg:Destroy()
+      end)
+    end
+  end
+})
+
+-- 4. WALLHACK (ESP)
+MainTab:AddButton({
+  Name = "Ativar Wallhack (ESP)",
+  Callback = function()
+    for _, v in pairs(game.Players:GetPlayers()) do
+      if v ~= game.Players.LocalPlayer and v.Character then
+        local highlight = Instance.new("Highlight", v.Character)
+        highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Cor vermelha para destaque
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+      end
+    end
+  end
+})
+
+-- Seção de Utilidades
+MainTab:AddSection({"Utilidades ADM"})
+
+-- 5. NO CLIP
+local noclip = false
+MainTab:AddToggle({
+  Name = "Atravessar Paredes (NoClip)",
+  Default = false,
+  Callback = function(v)
+    noclip = v
+    game:GetService("RunService").Stepped:Connect(function()
+      if noclip and game.Players.LocalPlayer.Character then
+        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+          if part:IsA("BasePart") then part.CanCollide = false end
+        end
+      end
+    end)
+  end
+})
+
+-- 6. ANTI-AFK
+MainTab:AddButton({
+  Name = "Ativar Anti-AFK",
+  Callback = function()
+    game.Players.LocalPlayer.Idled:Connect(function()
+      game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+      task.wait(1)
+      game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+    redzlib:Notify({Title = "Angelo ADM", Content = "Anti-AFK Ligado!", Duration = 3})
+  end
+})
+
+-- Notificação Final
+redzlib:Notify({
+  Title = "Angelo Hub",
+  Content = "Script executado com sucesso!",
+  Duration = 5
+})
